@@ -8,7 +8,7 @@ class AuthSettings(BaseSettings):
     SECRET_KEY: str = Field(min_length=32)
     ACCESS_TOKEN_EXPIRE_MIN: PositiveInt = Field(default=15)
     REFRESH_TOKEN_EXPIRE_DAY: PositiveInt = Field(default=7)
-    ALGORITHM: str = Field(default='RS256')
+    ALGORITHM: str = Field(default='SHA256')
 
 
 class DatabaseSettings(BaseSettings):
