@@ -3,6 +3,7 @@ import logging
 from fastapi import APIRouter, FastAPI
 
 from src.logger import setup_logging
+from src.middleware import DBSessionMiddleware
 from src.auth.routes import user_router, token_router, general_router
 
 setup_logging()
@@ -14,8 +15,8 @@ app = FastAPI(
     version='1.0.0',
     docs_url='/api/docs',
     redoc_url='/api/redoc',
-    dependency_overrides={},
 )
+app.add_middleware(DBSessionMiddleware)
 
 app_router = APIRouter(prefix='/api/v1')
 app_router.include_router(general_router, tags=['General'], prefix='')

@@ -2,7 +2,7 @@ from datetime import date, datetime
 from enum import Enum as PyEnum
 from typing import Optional
 
-from sqlalchemy import Boolean, Date, DateTime, Enum, ForeignKey, String
+from sqlalchemy import Date, DateTime, Enum, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.config.db import Base
@@ -30,8 +30,8 @@ class User(Base):
     __tablename__ = 'users'
     id: Mapped[int] = mapped_column(primary_key=True)
 
-    username: Mapped[str] = mapped_column(String(40), unique=True)
-    email: Mapped[Optional[str]] = mapped_column(String(100), unique=True)
+    username: Mapped[str] = mapped_column(String(40))
+    email: Mapped[Optional[str]] = mapped_column(String(100))
     password: Mapped[str] = mapped_column(String(100))
 
     role: Mapped['Role'] = mapped_column(Enum(Role), default=Role.USER)
@@ -39,4 +39,3 @@ class User(Base):
 
     latest_login: Mapped[Optional[datetime]] = mapped_column(DateTime)
     latest_password_change: Mapped[Optional[date]] = mapped_column(Date)
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True)

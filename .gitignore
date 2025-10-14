@@ -1,13 +1,6 @@
-# ENVIRONMENT
-.vscode
-.idea
 .env
 .venv
 
-# PYTHON
 *pyc
 __pycache__*
-.pytest*
-
-# API
 .brunoapi*
