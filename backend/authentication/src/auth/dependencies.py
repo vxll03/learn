@@ -2,11 +2,11 @@ from typing import Annotated
 
 from fastapi import Depends, Request
 
-from src.auth.service import AuthenticationService
+from src.auth.service import UserService
 
 
-def get_auth_service(request: Request) -> AuthenticationService:
-    return AuthenticationService(request.state.db)
+def get_user_service(request: Request) -> UserService:
+    return UserService(request.state.db)
 
 
-AuthService = Annotated[AuthenticationService, Depends(get_auth_service)]
+UserServiceDep = Annotated[UserService, Depends(get_user_service)]

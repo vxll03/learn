@@ -9,7 +9,6 @@ class AuthSettings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MIN: PositiveInt = Field(default=15)
     REFRESH_TOKEN_EXPIRE_DAY: PositiveInt = Field(default=7)
     ALGORITHM: str = Field(default='SHA256')
-    JWT_ISSUER: str = Field(default='user_service')
 
 
 class DatabaseSettings(BaseSettings):
