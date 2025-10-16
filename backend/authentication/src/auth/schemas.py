@@ -5,6 +5,12 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from src.auth.models import Role
 
 
+class JwtTokenSchema(BaseModel):
+    access: str
+    refresh: Optional[str]
+    model_config = ConfigDict(extra='ignore')
+
+
 class BaseOrmSchema(BaseModel):
     model_config = ConfigDict(extra='ignore', from_attributes=True)
 
