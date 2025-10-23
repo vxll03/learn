@@ -3,8 +3,9 @@ import logging
 from fastapi import APIRouter, Request, Response
 from sqlalchemy import select
 
-from src.auth.dependencies import TokenServiceDep, UserServiceDep
-from src.auth.schemas import BaseUserSchema, SelfUserSchema, UserCreateSchema, UserLoginSchema, UserUpdateSchema
+from src.auth.dependencies import TokenServiceDep, UserServiceDep, DatabaseDep
+from src.auth.schemas import BaseUserSchema, SelfUserSchema, UserCreateSchema, UserLoginSchema, UserUpdateSchema, \
+    UserResponseSchema
 from src.config.security import JwtToken
 
 log = logging.getLogger(__name__)
@@ -15,8 +16,9 @@ token_router = APIRouter()
 
 
 @general_router.get('/check/')
-async def health_check(request: Request) -> Response:
-    if await request.state.db.scalar(select(1)):
+async def health_check(db: DatabaseDep) -> Response:
+    if await db.scalar(select(1)):
+        log.debug('Health check passed')
         return Response('success')
     return Response('fail', 503)
 
@@ -24,20 +26,20 @@ async def health_check(request: Request) -> Response:
 # User router section
 @user_router.get('/me/', response_model=SelfUserSchema)
 async def get_self_user(request: Request, service: UserServiceDep):
-    return await service._get_or_404(request.auth.id)
+    return await service.get_or_404(request.auth.id)
 
 
-@user_router.get('/{user_id}/', response_model=BaseUserSchema)
+@user_router.get('/{user_id}/', response_model=UserResponseSchema)
 async def get_user_by_id(user_id: int, service: UserServiceDep):
-    return await service._get_or_404(user_id)
+    return await service.get_or_404(user_id)
 
 
-@user_router.post('/create/', response_model=BaseUserSchema, status_code=201)
+@user_router.post('/', response_model=UserResponseSchema, status_code=201)
 async def create_user(user_data: UserCreateSchema, service: UserServiceDep) -> BaseUserSchema:
     return await service.create_user(user_data)
 
 
-@user_router.patch('/{user_id}/', response_model=BaseUserSchema)
+@user_router.patch('/{user_id}/', response_model=UserResponseSchema)
 async def update_user(update_fields: UserUpdateSchema, user_id: int, service: UserServiceDep) -> BaseUserSchema:
     return await service.update_user(user_id, update_fields)
 
@@ -59,7 +61,7 @@ async def create_token(credentials: UserLoginSchema, token_service: TokenService
 @token_router.post('/refresh/', status_code=204)
 async def refresh_token(request: Request, token_service: TokenServiceDep, user_service: UserServiceDep): 
     decoded_refresh_token = JwtToken.decode_token(request.cookies.get('refresh'), JwtToken.TokenType.REFRESH)
-    db_user = await user_service._get_or_404(decoded_refresh_token.get('sub'))
+    db_user = await user_service.get_or_404(int(decoded_refresh_token.get('sub')))
     token_schema = token_service.encode_token_data(db_user, False)
     response = token_service.generate_cookie_response(token_schema)
     return response

@@ -32,15 +32,15 @@ class UserService:
         return db_user
 
 
-    async def _get_or_404(self, user_id) -> User:
+    async def get_or_404(self, user_id) -> User:
         db_user = await self.repo.get_user(user_id)
         if not db_user:
             log.warning(f'User not found with id: {user_id}')
             raise HTTPException(404, 'User not found')
         return db_user
 
-    async def get_user_by_id(self, user_id) -> BaseUserSchema:
-        return BaseUserSchema.model_validate(await self._get_or_404(user_id))
+    async def get_user_by_id(self, user_id) -> User:
+        return await self.get_or_404(user_id)
 
     async def get_self_user(self, user_id) -> SelfUserSchema:
         db_user = await self.repo.get_user_eager(user_id)
@@ -49,19 +49,19 @@ class UserService:
             raise HTTPException(404, 'User not found')
         return SelfUserSchema.model_validate(db_user)
 
-    async def create_user(self, user_data: UserCreateSchema) -> BaseUserSchema:
+    async def create_user(self, user_data: UserCreateSchema) -> User:
         password_hash = PasswordHasher.get_password_hash(user_data.password)
         user = await self.repo.create_user(user_data.username, password_hash)
         log.info(f'User created with name: {user.username}')
-        return BaseUserSchema.model_validate(user)
+        return user
 
-    async def update_user(self, user_id: int, update_fields: UserUpdateSchema) -> BaseUserSchema:
-        db_user = await self._get_or_404(user_id)
+    async def update_user(self, user_id: int, update_fields: UserUpdateSchema) -> User:
+        db_user = await self.get_or_404(user_id)
         db_user = await self.repo.update_user(db_user, **update_fields.model_dump(exclude_unset=True))
-        return BaseUserSchema.model_validate(db_user)
+        return db_user
 
     async def deactivate_user(self, user_id: int) -> bool:
-        db_user = await self._get_or_404(user_id)
+        db_user = await self.get_or_404(user_id)
         is_deactivated = await self.repo.deactivate_user(db_user)
         return is_deactivated
 
@@ -70,8 +70,9 @@ class TokenService:
     def __init__(self) -> None:
         pass
 
-    def encode_token_data(self, user: User, has_refresh: bool):
-        token_data = {'username': user.username, 'sub': user.id,}
+    @staticmethod
+    def encode_token_data(user: User, has_refresh: bool):
+        token_data = {'username': user.username, 'sub': str(user.id),}
         access_token = JwtToken.create_token(token_data, JwtToken.TokenType.ACCESS)
         refresh_token = None
         if has_refresh:
@@ -79,8 +80,9 @@ class TokenService:
 
         return JwtTokenSchema(access=access_token, refresh=refresh_token)
 
-    def generate_cookie_response(self, token_schema: JwtTokenSchema):
-        response = Response()
+    @staticmethod
+    def generate_cookie_response(token_schema: JwtTokenSchema):
+        response = Response(status_code=204)
         response.set_cookie(
             key='access',
             value=token_schema.access,
