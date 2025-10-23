@@ -49,7 +49,7 @@ class JwtToken:
             log.error(f'Unhandled token type: {type}')
             raise HTTPException(403, 'Error while authorize')
         try:
-            return jwt.encode(data, settings.auth.SECRET_KEY, settings.auth.ALGORITHM)
+            return jwt.encode(data, settings.auth.SECRET_KEY, algorithm=settings.auth.ALGORITHM)
         except jwt.PyJWTError as e:
             log.error(f'Error while encoding token: {e}')
             raise HTTPException(403, 'Incorrect token data')
@@ -61,7 +61,7 @@ class JwtToken:
                 token,
                 settings.auth.SECRET_KEY,
                 algorithms=[settings.auth.ALGORITHM],
-                options=({'verify_exp': True, 'verify_aud': False})
+                # options=({'verify_exp': True, 'verify_aud': False})
             )
             if payload.get('type') != token_type.value:
                 raise HTTPException(403, 'Invalid token type')
@@ -69,8 +69,8 @@ class JwtToken:
             return payload
         except jwt.ExpiredSignatureError:
             raise HTTPException(401, 'Token expired')
-        except jwt.InvalidTokenError:
-            raise HTTPException(403, 'Invalid token')
+        # except jwt.InvalidTokenError:
+        #     raise HTTPException(403, 'Invalid token')
         except jwt.PyJWTError as e:
             log.error(f'Error while decoding token: {e}')
             raise HTTPException(403, 'Incorrect token')
