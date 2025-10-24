@@ -17,7 +17,7 @@ jobs:
       - name: Run tests
         run: |
           cd backend/authentication
-          uv sync --frozen --all-extras
+          uv sync --frozen
           pytest --junitxml=report.xml
 
       - name: Upload test report
