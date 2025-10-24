@@ -37,9 +37,9 @@ class Logging(BaseSettings):
 
 
 class Settings(BaseSettings):
-    auth: AuthSettings
-    db: DatabaseSettings
-    log: Logging
+    auth: AuthSettings = Field(default_factory=AuthSettings)
+    db: DatabaseSettings = Field(default_factory=DatabaseSettings)
+    log: Logging = Field(default_factory=Logging)
 
     model_config = SettingsConfigDict(env_file='.env', extra='ignore', env_nested_delimiter='__')
 

@@ -9,6 +9,12 @@ jobs:
   auth_service_test:
     runs-on: ubuntu-latest
     container: ghcr.io/astral-sh/uv:python3.12-alpine
+    environment: develop
+    env:
+      AUTH__SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      AUTH__ALGORITHM: ${{ vars.ALGORITHM }}
+      AUTH__ACCESS_TOKEN_EXPIRE_MIN: ${{ vars.ACCESS_TOKEN_EXPIRE_MIN }}
+      AUTH__REFRESH_TOKEN_EXPIRE_DAY: ${{ vars.REFRESH_TOKEN_EXPIRE_DAY }}
 
     steps:
       - name: Checkout code
