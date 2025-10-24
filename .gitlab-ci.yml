@@ -1,0 +1,19 @@
+stages:
+  - test
+
+auth_service_test:
+  stage: test
+  image: ghcr.io/astral-sh/uv:python3.12-alpine
+  script:
+    - cd backend/authentication
+    - uv sync
+    - pytest --junitxml=report.xml
+  artifacts:
+    when: always
+    reports:
+      junit: backend/authentication/report.xml
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
+    - changes:
+        - backend/authentication/**
+
