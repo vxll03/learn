@@ -5,6 +5,6 @@ COPY . .
 RUN uv sync --frozen
 
 RUN useradd --user-group user
-RUN chown -R user:user /app && chmod -R 75 /app
+RUN chown -R user:user /app && chmod -R 750 /app
 
 EXPOSE 8000
