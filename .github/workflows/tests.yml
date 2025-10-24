@@ -1,0 +1,28 @@
+name: Authentication Service Tests
+
+on:
+  push:
+    paths:
+      - 'backend/authentication/**'
+
+jobs:
+  auth_service_test:
+    runs-on: ubuntu-latest
+    container: ghcr.io/astral-sh/uv:python3.12-alpine
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run tests
+        run: |
+          cd backend/authentication
+          uv sync
+          pytest --junitxml=report.xml
+
+      - name: Upload test report
+        uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: auth-test-report
+          path: backend/authentication/report.xml
