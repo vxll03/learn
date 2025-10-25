@@ -1,6 +1,10 @@
 version: "3.9"
+name: "pet_backend"
 
 services:
+  auth_redis:
+    image: redis:8-alpine
+
   auth_db:
     image: postgres:15-alpine
     environment:
@@ -14,7 +18,7 @@ services:
     build:
       context: ./authentication
       dockerfile: Dockerfile
-    image: ghcr.io/vxll/authentication:latest
+#    image: ghcr.io/vxll/authentication:latest
     env_file:
       - ./authentication/.env
     ports:

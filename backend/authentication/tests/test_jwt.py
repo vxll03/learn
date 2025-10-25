@@ -25,10 +25,13 @@ async def create_valid_token(client, create_valid_user):
 )
 async def test_create_token(client, create_valid_user, username, password, is_valid):
     await create_valid_user()
-    response = await client.post('/token/create/', json={
-        'username': username,
-        'password': password,
-    })
+    response = await client.post(
+        '/token/create/',
+        json={
+            'username': username,
+            'password': password,
+        },
+    )
     if is_valid:
         assert response.status_code == 204
         assert response.cookies.get('access') is not None

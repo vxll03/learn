@@ -17,6 +17,7 @@ dependencies = [
     "pyjwt>=2.10.1",
     "pytest>=8.4.2",
     "pytest-asyncio>=1.2.0",
+    "redis[hiredis]>=7.0.0",
     "sqlalchemy>=2.0.44",
     "uvicorn>=0.37.0",
 ]

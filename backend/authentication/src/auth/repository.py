@@ -24,13 +24,14 @@ class UserRepository:
             select(User)
             .where(User.id == user_id)
             .options(
-                joinedload(getattr(User, 'role')),
                 selectinload(getattr(User, 'groups')),
             ),
         )
     
     async def get_user_by_username(self, username: str) -> User | None:
-        return await self.db.scalar(select(User).where(User.username == username))
+        return await self.db.scalar(select(User).where(User.username == username).options(
+                selectinload(getattr(User, 'groups')),
+            ))
 
     async def deactivate_user(self, user: User) -> bool:
         user.is_active = False

@@ -1,8 +1,9 @@
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
+from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from src.config.db import Base, get_session
+from src.config.db import Base, get_session, get_redis
 from src.main import app
 
 
@@ -38,14 +39,29 @@ async def async_db_session(async_session_factory):
 
 
 @pytest_asyncio.fixture
-async def client(async_db_session):
+async def async_redis_session():
+    redis = Redis(host='127.0.0.1', port=6379, db=0, decode_responses=True)
+    yield redis
+    await redis.aclose()
+
+
+@pytest_asyncio.fixture
+async def client(async_db_session, async_redis_session):
     def override_get_db():
         return async_db_session
 
+    def override_get_redis():
+        return async_redis_session
+
     test_app = app
     test_app.dependency_overrides[get_session] = override_get_db
+    test_app.dependency_overrides[get_redis] = override_get_redis
 
-    async with AsyncClient(transport=ASGITransport(app=test_app), base_url='http://test/api/v1') as ac:
+    async with AsyncClient(
+        transport=ASGITransport(app=test_app),
+        base_url='http://test/api/v1',
+        headers={'Content-Type': 'application/json'}
+    ) as ac:
         yield ac
 
     test_app.dependency_overrides.clear()

@@ -1,4 +1,5 @@
 import re
+from datetime import timedelta
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -9,6 +10,8 @@ from src.auth.models import Role
 class JwtTokenSchema(BaseModel):
     access: str
     refresh: Optional[str]
+
+    jti: str
     model_config = ConfigDict(extra='ignore')
 
 

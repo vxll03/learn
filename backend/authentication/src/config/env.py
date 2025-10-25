@@ -36,10 +36,16 @@ class Logging(BaseSettings):
         return logging.getLevelNamesMapping().get(self.LEVEL, logging.DEBUG)
 
 
+class RedisSettings(BaseSettings):
+    HOST: str = Field(default='127.0.0.1')
+    PORT: int = Field(default=6379)
+    DB: int = Field(default=0)
+
 class Settings(BaseSettings):
     auth: AuthSettings = Field(default_factory=AuthSettings)
     db: DatabaseSettings = Field(default_factory=DatabaseSettings)
     log: Logging = Field(default_factory=Logging)
+    redis: RedisSettings = Field(default_factory=RedisSettings)
 
     model_config = SettingsConfigDict(env_file='.env', extra='ignore', env_nested_delimiter='__')
 

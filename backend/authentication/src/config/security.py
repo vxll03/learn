@@ -29,27 +29,28 @@ class JwtToken:
         REFRESH = 'Refresh'
 
     @staticmethod
-    def create_token(token_data: dict[str, Any], type: TokenType):
+    def create_token(token_data: dict[str, Any], token_type: TokenType) -> tuple[str, str]:
         now = datetime.now(timezone.utc)
+        jti = str(uuid4())
 
         data = token_data.copy()
         data.update(
             {
                 'iss': settings.auth.JWT_ISSUER,  # need to replace mb
-                'type': type.value,
-                'jti': str(uuid4()),
+                'type': token_type.value,
+                'jti': jti,
                 'iat': now,
             }
         )
-        if type == JwtToken.TokenType.ACCESS:
+        if token_type == JwtToken.TokenType.ACCESS:
             data.update({'exp': now + timedelta(minutes=settings.auth.ACCESS_TOKEN_EXPIRE_MIN)})
-        elif type == JwtToken.TokenType.REFRESH:
+        elif token_type == JwtToken.TokenType.REFRESH:
             data.update({'exp': now + timedelta(days=settings.auth.REFRESH_TOKEN_EXPIRE_DAY)})
         else:
-            log.error(f'Unhandled token type: {type}')
+            log.error(f'Unhandled token type: {token_type}')
             raise HTTPException(403, 'Error while authorize')
         try:
-            return jwt.encode(data, settings.auth.SECRET_KEY, algorithm=settings.auth.ALGORITHM)
+            return jwt.encode(data, settings.auth.SECRET_KEY, algorithm=settings.auth.ALGORITHM), jti
         except jwt.PyJWTError as e:
             log.error(f'Error while encoding token: {e}')
             raise HTTPException(403, 'Incorrect token data')

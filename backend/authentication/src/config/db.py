@@ -2,6 +2,7 @@ import logging
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
+from redis.asyncio import Redis
 
 from .env import settings
 
@@ -40,3 +41,12 @@ async def get_session():
 
 class Base(DeclarativeBase):
     pass
+
+
+redis = Redis(host=settings.redis.HOST, port=settings.redis.PORT, db=settings.redis.DB, decode_responses=True)
+async def get_redis():
+    try:
+        yield redis
+    except Exception as redis_error:
+        log.error(f'redis error: {redis_error}')
+        raise
