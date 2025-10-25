@@ -7,6 +7,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: docker-hub
     permissions:
       contents: read
       packages: write
@@ -14,6 +15,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.username }}
+          password: ${{ secrets.password }}
 
       - name: Login to GHCR
         uses: docker/login-action@v3
@@ -23,7 +30,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push
-        uses: docker/compose-action@v3
+        uses: docker/build-push-action@v5
         with:
           context: ./backend
           push: true
