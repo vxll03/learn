@@ -1,0 +1,31 @@
+version: "3.9"
+
+services:
+  auth_db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: auth
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - auth_db:/var/lib/postgresql/data
+
+  auth:
+    build:
+      context: ./authentication
+      dockerfile: Dockerfile
+    image: ghcr.io/vxll/authentication:latest
+    env_file:
+      - ./authentication/.env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - auth_db
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 5s
+      timeout: 30s
+      start_period: 10s
+
+volumes:
+  auth_db:
