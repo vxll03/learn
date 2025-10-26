@@ -37,7 +37,7 @@ class Logging(BaseSettings):
 
 
 class RedisSettings(BaseSettings):
-    HOST: str = Field(default='127.0.0.1')
+    HOST: str = Field(default='auth_redis')
     PORT: int = Field(default=6379)
     DB: int = Field(default=0)
 
