@@ -34,10 +34,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run tests
+      - name: Install deps
         run: |
           cd backend/authentication
-          uv sync --frozen
+          uv run sync --frozen
+
+      - name: Run tests
+        run: |
           uv run pytest --junitxml=report.xml
 
       - name: Upload test report

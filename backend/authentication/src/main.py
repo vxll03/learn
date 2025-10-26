@@ -1,6 +1,7 @@
 import logging
 
 from fastapi import APIRouter, FastAPI
+from starlette.middleware.cors import CORSMiddleware
 
 from src.logger import setup_logging
 from src.auth.routes import user_router, token_router, general_router
@@ -16,6 +17,16 @@ app = FastAPI(
     redoc_url='/api/redoc',
     dependency_overrides={},
 )
+cors = CORSMiddleware(
+    app=app,
+    allow_methods=['*'],
+    allow_headers=['*'],
+    allow_origins=[
+        'localhost:3000',
+        '127.0.0.1:3000',
+    ],
+)
+
 
 app_router = APIRouter(prefix='/api/v1')
 app_router.include_router(general_router, tags=['General'], prefix='')
