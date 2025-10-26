@@ -1,0 +1,52 @@
+name: Authentication Service Tests
+
+on:
+  push:
+    paths:
+      - 'backend/authentication/**'
+
+jobs:
+  auth_service_test:
+    runs-on: ubuntu-latest
+    container: ghcr.io/astral-sh/uv:python3.12-alpine
+    environment: develop
+
+    services:
+      redis:
+        image: redis:8-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      AUTH__SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      AUTH__ALGORITHM: ${{ vars.ALGORITHM }}
+      AUTH__ACCESS_TOKEN_EXPIRE_MIN: ${{ vars.ACCESS_TOKEN_EXPIRE_MIN }}
+      AUTH__REFRESH_TOKEN_EXPIRE_DAY: ${{ vars.REFRESH_TOKEN_EXPIRE_DAY }}
+      REDIS__HOST: redis
+      REDIS__PORT: 6379
+      UV_LINK_MODE: copy
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install deps
+        run: |
+          cd backend/authentication
+          uv sync --frozen
+
+      - name: Run tests
+        run: |
+          uv run pytest --junitxml=report.xml
+
+      - name: Upload test report
+        uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: auth-test-report
+          path: backend/authentication/report.xml

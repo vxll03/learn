@@ -4,9 +4,7 @@ from fastapi import APIRouter, Request, Response
 from sqlalchemy import select
 
 from src.auth.dependencies import TokenServiceDep, UserServiceDep, DatabaseDep
-from src.auth.schemas import BaseUserSchema, SelfUserSchema, UserCreateSchema, UserLoginSchema, UserUpdateSchema, \
-    UserResponseSchema
-from src.config.security import JwtToken
+from src.auth.schemas import SelfUserSchema, UserCreateSchema, UserLoginSchema, UserUpdateSchema, UserResponseSchema
 
 log = logging.getLogger(__name__)
 
@@ -35,12 +33,12 @@ async def get_user_by_id(user_id: int, service: UserServiceDep):
 
 
 @user_router.post('/', response_model=UserResponseSchema, status_code=201)
-async def create_user(user_data: UserCreateSchema, service: UserServiceDep) -> BaseUserSchema:
+async def create_user(user_data: UserCreateSchema, service: UserServiceDep):
     return await service.create_user(user_data)
 
 
 @user_router.patch('/{user_id}/', response_model=UserResponseSchema)
-async def update_user(update_fields: UserUpdateSchema, user_id: int, service: UserServiceDep) -> BaseUserSchema:
+async def update_user(update_fields: UserUpdateSchema, user_id: int, service: UserServiceDep):
     return await service.update_user(user_id, update_fields)
 
 
@@ -49,27 +47,17 @@ async def deactivate_user(user_id: int, service: UserServiceDep) -> bool:
     return await service.deactivate_user(user_id)
 
 
-# Token router section 
+# Token router section
 @token_router.post('/create/', status_code=204)
-async def create_token(credentials: UserLoginSchema, token_service: TokenServiceDep, user_service: UserServiceDep) -> Response: 
-    db_user = await user_service.get_user_by_credentials(credentials)
-    token_schema = token_service.encode_token_data(db_user, True)
-    response = token_service.generate_cookie_response(token_schema)
-    return response
+async def create_token(credentials: UserLoginSchema, token_service: TokenServiceDep):
+    return await token_service.create_token(credentials)
 
 
 @token_router.post('/refresh/', status_code=204)
-async def refresh_token(request: Request, token_service: TokenServiceDep, user_service: UserServiceDep): 
-    decoded_refresh_token = JwtToken.decode_token(request.cookies.get('refresh'), JwtToken.TokenType.REFRESH)
-    db_user = await user_service.get_or_404(int(decoded_refresh_token.get('sub')))
-    token_schema = token_service.encode_token_data(db_user, False)
-    response = token_service.generate_cookie_response(token_schema)
-    return response
+async def refresh_token(request: Request, token_service: TokenServiceDep):
+    return await token_service.update_token(request)
 
 
 @token_router.post('/delete/', status_code=204)
-async def delete_token() -> Response: 
-    response = Response()
-    response.delete_cookie('access')
-    response.delete_cookie('refresh')
-    return response
+async def delete_token(request: Request, token_service: TokenServiceDep) -> Response:
+    return await token_service.delete_token(request)
