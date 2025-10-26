@@ -29,6 +29,7 @@ jobs:
       AUTH__REFRESH_TOKEN_EXPIRE_DAY: ${{ vars.REFRESH_TOKEN_EXPIRE_DAY }}
       REDIS__HOST: redis
       REDIS__PORT: 6379
+      UV_LINK_MODE: copy
 
     steps:
       - name: Checkout code
@@ -37,7 +38,7 @@ jobs:
       - name: Install deps
         run: |
           cd backend/authentication
-          uv run sync --frozen
+          uv sync --frozen
 
       - name: Run tests
         run: |
